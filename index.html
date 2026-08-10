@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tengo un regalo para ti</title>
+
+<!-- ============================================================
+     FUENTES
+     Fraunces (serif editorial, con carácter) para títulos
+     Inter (sans limpia) para texto y etiquetas
+============================================================ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  /* ============================================================
+     TOKENS — paleta y sistema
+     ============================================================ */
+  :root {
+    --snow: #FAF9F6;
+    --mist: #E9E7E1;
+    --ink: #21241F;
+    --slate: #5C6B73;      /* azul-gris montaña */
+    --ember: #AD7A55;      /* cálido, discreto — solo para acentos puntuales */
+    --ink-soft: rgba(33, 36, 31, 0.62);
+
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--snow);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-weight: 400;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  section {
+    position: relative;
+    min-height: 100svh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 8vh 7vw;
+  }
+
+  /* ============================================================
+     MOTIVO FIRMA — línea de montaña, muy sutil, aparece una sola vez
+     de fondo en cada sección como hilo conductor discreto
+     ============================================================ */
+  .peak-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    opacity: 0.08;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .peak-line path {
+    stroke: var(--slate);
+    stroke-width: 1;
+    fill: none;
+  }
+
+  .eyebrow {
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--slate);
+    font-weight: 500;
+    margin-bottom: 1.6rem;
+    opacity: 0;
+  }
+
+  h1, h2 {
+    font-family: var(--serif);
+    font-weight: 400;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    opacity: 0;
+  }
+
+  h1 { font-size: clamp(2.1rem, 9vw, 3.4rem); }
+  h2 { font-size: clamp(1.8rem, 7.5vw, 2.9rem); }
+
+  p.copy {
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: clamp(1rem, 4vw, 1.15rem);
+    line-height: 1.75;
+    color: var(--ink-soft);
+    max-width: 32ch;
+    margin-top: 1.6rem;
+    opacity: 0;
+  }
+
+  .accent {
+    color: var(--ember);
+    font-style: italic;
+    font-family: var(--serif);
+  }
+
+  .content { position: relative; z-index: 1; }
+
+  /* fade-in genérico controlado por JS/IntersectionObserver */
+  .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+  }
+  .reveal.in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal.d1 { transition-delay: 0.08s; }
+  .reveal.d2 { transition-delay: 0.2s; }
+  .reveal.d3 { transition-delay: 0.34s; }
+  .reveal.d4 { transition-delay: 0.5s; }
+
+  /* ============================================================
+     FLECHA DE SCROLL — discreta
+     ============================================================ */
+  .scroll-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 3rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+    opacity: 0;
+  }
+  .scroll-hint svg {
+    width: 14px;
+    height: 14px;
+    animation: bob 2.2s ease-in-out infinite;
+  }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(5px); }
+  }
+
+  /* ============================================================
+     SECCIÓN 1 — apertura
+     ============================================================ */
+  #s1 {
+    align-items: flex-start;
+    background: var(--snow);
+  }
+
+  /* ============================================================
+     SECCIÓN 2 / 3 / 4 / 5 — pasos
+     ============================================================ */
+  .step-section {
+    background: var(--snow);
+  }
+  #s3 { background: var(--mist); }
+
+  .big-line {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(2.4rem, 11vw, 4.2rem);
+    line-height: 1.05;
+    margin-top: 2.4rem;
+    color: var(--ink);
+    opacity: 0;
+  }
+
+  /* ============================================================
+     SECCIÓN 5 — resumen visual + botón de revelación
+     ============================================================ */
+  .facts {
+    margin-top: 2.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    opacity: 0;
+  }
+  .fact {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    font-size: 0.98rem;
+    color: var(--ink-soft);
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid var(--mist);
+  }
+  .fact .mark {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--ember);
+    flex-shrink: 0;
+  }
+
+  .reveal-btn {
+    margin-top: 2.8rem;
+    align-self: flex-start;
+    background: transparent;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    padding: 1rem 2.1rem;
+    cursor: pointer;
+    transition: background 0.4s var(--ease), color 0.4s var(--ease);
+    opacity: 0;
+  }
+  .reveal-btn:hover,
+  .reveal-btn:focus-visible {
+    background: var(--ink);
+    color: var(--snow);
+  }
+  .reveal-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+
+  /* ============================================================
+     SECCIÓN DESTINO — el gran momento
+     ============================================================ */
+  #destino {
+    background: linear-gradient(180deg, rgba(20,24,22,0.35), rgba(20,24,22,0.62)),
+                /* ============================================================
+                   3. FOTOGRAFÍA DEL DESTINO
+                   Sustituye la URL de abajo por tu propia foto panorámica
+                   de montaña (recomendado: imagen ancha, >1600px,
+                   optimizada para móvil, formato jpg/webp)
+                ============================================================ */
+                url('https://images.unsplash.com/photo-1520681279154-51b3fb4d7bcb?q=80&w=1600&auto=format&fit=crop')
+                center / cover no-repeat;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: var(--snow);
+    display: none; /* se activa vía JS tras pulsar "Descubrir destino" */
+  }
+  #destino.active {
+    display: flex;
+    animation: fadeInDestino 1.3s var(--ease);
+  }
+  @keyframes fadeInDestino {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  #destino .eyebrow { color: rgba(250,249,246,0.75); }
+  #destino h2 {
+    /* ============================================================
+       1. NOMBRE DE LA ESTACIÓN — edítalo aquí
+    ============================================================ */
+    font-size: clamp(2.4rem, 10vw, 4rem);
+    color: var(--snow);
+    opacity: 1;
+  }
+  #destino .fechas {
+    /* ============================================================
+       2. FECHAS — edítalas aquí
+    ============================================================ */
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: 1rem;
+    letter-spacing: 0.06em;
+    margin-top: 1.2rem;
+    color: rgba(250,249,246,0.85);
+    opacity: 1;
+  }
+
+  /* ============================================================
+     SECCIÓN 6 — TIMELINE
+     ============================================================ */
+  #plan {
+    background: var(--snow);
+  }
+  .timeline {
+    margin-top: 2.6rem;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  .tl-item {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 1.2rem;
+    padding: 1.6rem 0;
+    border-top: 1px solid var(--mist);
+    opacity: 0;
+  }
+  .tl-item:last-child { border-bottom: 1px solid var(--mist); }
+  .tl-dot-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .tl-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ember);
+    margin-top: 0.4rem;
+  }
+  .tl-day {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+  }
+  .tl-text {
+    font-size: 0.96rem;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    font-weight: 300;
+    max-width: 34ch;
+  }
+
+  /* ============================================================
+     FOTO INSERTADA — imágenes puntuales repartidas por la página
+     Formato editorial: descentrada, con recorte 4:5, sin marco
+     decorativo. Aparece con el mismo fade-in que el resto.
+     ============================================================ */
+  .photo-inset {
+    margin-top: 2.6rem;
+    width: 76%;
+    max-width: 340px;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    opacity: 0;
+  }
+  .photo-inset.wide {
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 5 / 4;
+  }
+  .photo-inset img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: grayscale(12%) contrast(1.02);
+  }
+  .photo-inset.align-right {
+    align-self: flex-end;
+  }
+
+  /* ============================================================
+     SECCIÓN FINAL
+     ============================================================ */
+  #final {
+    background: var(--ink);
+    color: var(--snow);
+    align-items: flex-start;
+    justify-content: center;
+  }
+  #final .copy { color: rgba(250,249,246,0.72); max-width: 34ch; }
+  #final .big-line { color: var(--snow); }
+  #final .big-line .accent { color: var(--ember); font-style: italic; }
+  #final .signature {
+    /* ============================================================
+       4. FIRMA O NOMBRE — edítala aquí
+    ============================================================ */
+    margin-top: 3rem;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.4rem;
+    opacity: 0;
+    color: var(--snow);
+  }
+
+  /* Pequeño respiro final */
+  .end-space { height: 6vh; }
+
+  /* ============================================================
+     RESPONSIVE — ajustes para pantallas algo más grandes
+     ============================================================ */
+  @media (min-width: 700px) {
+    section { padding: 8vh 12vw; }
+    p.copy, .tl-text { max-width: 42ch; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     SECCIÓN 1 — Apertura
+============================================================ -->
+<section id="s1">
+  <svg class="peak-line" viewBox="0 0 400 60" preserveAspectRatio="none"><path d="M0,55 L60,20 L100,40 L160,10 L220,45 L280,25 L340,50 L400,15"/></svg>
+  <div class="content">
+    <p class="eyebrow reveal">Para ti</p>
+    <h1 class="reveal d1">Tengo un regalo para ti.</h1>
+    <p class="copy reveal d2">Pero esta vez no quería comprarte algo.<br>Quería regalarte algo que pudiéramos recordar.</p>
+    <div class="scroll-hint reveal d3">
+      <span>Desliza para descubrirlo</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 4v16M6 14l6 6 6-6"/></svg>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECCIÓN 2 — Paso 1
+============================================================ -->
+<section id="s2" class="step-section">
+  <svg class="peak-line" viewBox="0 0 400 60" preserveAspectRatio="none"><path d="M0,40 L70,15 L130,35 L190,5 L250,38 L320,20 L400,45"/></svg>
+  <div class="content">
+    <p class="eyebrow reveal">Paso 1</p>
+    <h2 class="reveal d1">Una escapada.</h2>
+    <p class="copy reveal d2">Un fin de semana fuera.<br>Tú y yo.<br>Un lugar diferente, un hotel bonito, algo rico para cenar y tiempo para nosotros.<br><br>Pero eso no es todo.</p>
+    <div class="photo-inset reveal d3">
+      <img src="fotos/foto2.jpg" alt="Los dos en un mirador junto al mar" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECCIÓN 3 — Paso 2
+============================================================ -->
+<section id="s3" class="step-section">
+  <svg class="peak-line" viewBox="0 0 400 60" preserveAspectRatio="none"><path d="M0,30 L50,50 L110,10 L170,40 L230,15 L300,45 L400,20"/></svg>
+  <div class="content">
+    <p class="eyebrow reveal">Paso 2</p>
+    <h2 class="reveal d1">Hay una pequeña condición.</h2>
+    <p class="copy reveal d2">El plan incluye hacer algo que a ti te encanta&hellip;<br>y que yo, digamos, no elegiría voluntariamente.<br><br>Frío.<br>Nieve.<br>Botas incómodas.<br>Y dos tablas debajo de los pies.</p>
+    <p class="big-line reveal d3">Sí.<br>Vamos a <span class="accent">esquiar</span>.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECCIÓN 4 — Paso 3
+============================================================ -->
+<section id="s4" class="step-section">
+  <svg class="peak-line" viewBox="0 0 400 60" preserveAspectRatio="none"><path d="M0,45 L80,20 L140,40 L200,12 L260,42 L340,18 L400,38"/></svg>
+  <div class="content">
+    <p class="eyebrow reveal">Paso 3</p>
+    <h2 class="reveal d1">Y aquí está realmente el regalo.</h2>
+    <p class="copy reveal d2">El regalo no es solo el viaje.<br>Es que voy contigo.<br><br>Voy a ponerme unos esquís.<br>Voy a aprender.<br>Probablemente me caeré.<br>Probablemente me arrepentiré varias veces durante el día.<br>Y probablemente tú te reirás bastante.<br><br>Pero quiero aprender contigo.<br>Porque sé que a ti te hace ilusión.<br>Y quiero vivirlo contigo.</p>
+    <div class="photo-inset align-right reveal d3">
+      <img src="fotos/foto1.jpg" alt="Los dos riendo en el agua" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECCIÓN 5 — Paso 4 + botón de revelación
+============================================================ -->
+<section id="s5" class="step-section">
+  <svg class="peak-line" viewBox="0 0 400 60" preserveAspectRatio="none"><path d="M0,20 L60,45 L120,15 L180,40 L250,10 L320,42 L400,25"/></svg>
+  <div class="content">
+    <p class="eyebrow reveal">Paso 4</p>
+    <h2 class="reveal d1">Así que prepara la ropa de invierno.</h2>
+    <p class="copy reveal d2">Nos vamos un fin de semana a la nieve.</p>
+
+    <div class="facts reveal d3">
+      <div class="fact"><span class="mark"></span>Una estación de esquí</div>
+      <div class="fact"><span class="mark"></span>Dos días para esquiar</div>
+      <div class="fact"><span class="mark"></span>Una noche juntos</div>
+      <div class="fact"><span class="mark"></span>Una buena cena</div>
+      <div class="fact"><span class="mark"></span>Yo, intentando sobrevivir a mi primera experiencia seria sobre unos esquís</div>
+    </div>
+
+    <button class="reveal-btn reveal d4" id="revealBtn">Descubrir destino</button>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECCIÓN DESTINO — momento de revelación
+     Se muestra al pulsar "Descubrir destino"
+============================================================ -->
+<section id="destino">
+  <div class="content" style="display:flex; flex-direction:column; align-items:center;">
+    <p class="eyebrow">Vuestro destino</p>
+    <!-- 1. NOMBRE DE LA ESTACIÓN -->
+    <h2>Jaca</h2>
+    <!-- 2. FECHAS — de momento se deja abierto a propósito -->
+    <p class="fechas">Fechas por decidir juntos</p>
+    <!-- Estación de esquí: edita aquí si cambias entre Candanchú y Formigal -->
+    <p class="fechas" style="margin-top:0.6rem; opacity:0.75;">Esquiaremos en Candanchú</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECCIÓN 6 — Timeline del plan
+============================================================ -->
+<section id="plan">
+  <svg class="peak-line" viewBox="0 0 400 60" preserveAspectRatio="none"><path d="M0,50 L70,25 L140,45 L200,15 L270,48 L340,22 L400,40"/></svg>
+  <div class="content" style="width:100%;">
+    <p class="eyebrow reveal">El itinerario</p>
+    <h2 class="reveal d1">El plan</h2>
+
+    <div class="timeline">
+      <div class="tl-item reveal">
+        <div class="tl-dot-col"><div class="tl-dot"></div></div>
+        <div>
+          <p class="tl-day">Viernes</p>
+          <p class="tl-text">Llegamos, dejamos las cosas y empieza el fin de semana.<br>Sin prisas.<br>Cena y noche juntos.</p>
+        </div>
+      </div>
+      <div class="tl-item reveal d1">
+        <div class="tl-dot-col"><div class="tl-dot"></div></div>
+        <div>
+          <p class="tl-day">Sábado</p>
+          <p class="tl-text">Desayuno.<br>Nos ponemos las botas.<br>Tú esquías. Yo intento aprender.<br>Y empieza oficialmente el reto.<br><br>Después: ducha caliente, descanso y algo rico para cenar.</p>
+        </div>
+      </div>
+      <div class="tl-item reveal d2">
+        <div class="tl-dot-col"><div class="tl-dot"></div></div>
+        <div>
+          <p class="tl-day">Domingo</p>
+          <p class="tl-text">Segundo día de nieve.<br>Unas últimas bajadas.<br>Y vuelta a casa.<br>Con suerte, todavía caminando los dos.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="photo-inset wide reveal d3" style="margin-left:auto; margin-right:auto;">
+      <img src="fotos/foto3.jpg" alt="Los dos de viaje por una ciudad" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECCIÓN FINAL
+============================================================ -->
+<section id="final">
+  <div class="content">
+    <div class="photo-inset wide reveal">
+      <img src="fotos/foto4.jpg" alt="Los dos abrazados frente al mar al atardecer" loading="lazy">
+    </div>
+    <p class="big-line reveal d1">Y ahora sí.</p>
+    <p class="copy reveal d1">Este es tu regalo.<br><br>No puedo prometerte que vaya a convertirme en esquiador.<br>Ni siquiera puedo prometerte que no proteste un poco.<br><br>Pero sí puedo prometerte algo:</p>
+    <p class="big-line reveal d2">voy a hacerlo <span class="accent">contigo</span>.</p>
+    <p class="copy reveal d3">Porque sé que te gusta.<br>Porque quiero que tengamos más experiencias juntos.<br>Y porque algunos regalos no se compran.</p>
+    <p class="big-line reveal d3">Se <span class="accent">viven</span>.</p>
+    <p class="copy reveal d4">Te quiero.</p>
+    <!-- 4. FIRMA O NOMBRE -->
+    <p class="signature reveal d4">&mdash; Joe</p>
+    <div class="end-space"></div>
+  </div>
+</section>
+
+<script>
+  // ============================================================
+  // FADE-IN AL HACER SCROLL
+  // ============================================================
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+      }
+    });
+  }, { threshold: 0.2 });
+
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // ============================================================
+  // REVELACIÓN DEL DESTINO
+  // ============================================================
+  const revealBtn = document.getElementById('revealBtn');
+  const destino = document.getElementById('destino');
+
+  revealBtn.addEventListener('click', () => {
+    destino.classList.add('active');
+    // pequeño delay para que el navegador registre display:flex antes de animar
+    requestAnimationFrame(() => {
+      destino.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+
+</body>
+</html>
